@@ -1,0 +1,42 @@
+name: RISC-V CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  riscv-build:
+    runs-on: ubuntu-24.04-riscv
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show RISC-V architecture
+        run: |
+          uname -m
+          cat /etc/os-release
+
+      - name: Set up Python 3.12
+        run: |
+          python3 --version || true
+          which python3 || true
+
+      - name: Install dependencies
+        run: |
+          pip3 install uv || sudo apt-get update && sudo apt-get install -y python3-pip && pip3 install uv
+
+      - name: Build Wheel
+        env:
+          UV_SYSTEM_PYTHON: 1
+        run: |
+          bash scripts/build_wheel.sh --python python3
+
+      - name: Upload Wheel Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vllm-omni-wheel-riscv64
+          path: dist/*.whl
